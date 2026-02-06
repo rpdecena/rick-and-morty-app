@@ -11,20 +11,15 @@ class HomeScreen extends StatefulWidget {
 }
 
 class _HomeScreenState extends State<HomeScreen> {
+  // Note: ScrollController is no longer needed for pagination logic, 
+  // but kept if you want to scroll to top on page change.
   final ScrollController _scrollController = ScrollController();
   final TextEditingController _searchController = TextEditingController();
 
-  // Hardcoded Choices
   final List<String> statusOptions = ['All', 'Alive', 'Dead', 'unknown'];
   final List<String> speciesOptions = [
-    'All',
-    'Human',
-    'Alien',
-    'Humanoid',
-    'Poopybutthole',
-    'Mythological Creature',
-    'Robot',
-    'Cronenberg'
+    'All', 'Human', 'Alien', 'Humanoid', 'Poopybutthole',
+    'Mythological Creature', 'Robot', 'Cronenberg'
   ];
 
   String selectedStatus = 'All';
@@ -33,13 +28,7 @@ class _HomeScreenState extends State<HomeScreen> {
   @override
   void initState() {
     super.initState();
-    // Setup Pagination Listener
-    _scrollController.addListener(() {
-      if (_scrollController.position.pixels >=
-          _scrollController.position.maxScrollExtent - 200) {
-        context.read<CharacterCubit>().loadMore();
-      }
-    });
+    // REMOVED: Scroll listener for infinite scrolling
   }
 
   void _performSearch() {
@@ -107,7 +96,6 @@ class _HomeScreenState extends State<HomeScreen> {
             },
           )
         ],
-        // Filters in Bottom Slot
         bottom: PreferredSize(
           preferredSize: const Size.fromHeight(60),
           child: SingleChildScrollView(
@@ -139,42 +127,119 @@ class _HomeScreenState extends State<HomeScreen> {
           ),
         ),
       ),
-      body: BlocBuilder<CharacterCubit, CharacterState>(
-        builder: (context, state) {
-          if (state is CharacterLoading && state.isFirstFetch) {
-            return const Center(child: CircularProgressIndicator());
-          }
+      // CHANGED: Use Column to stack List and Pagination Bar
+      body: Column(
+        children: [
+          Expanded(
+            child: BlocBuilder<CharacterCubit, CharacterState>(
+              builder: (context, state) {
+                // Handle initial loading
+                if (state is CharacterLoading && state.isFirstFetch) {
+                  return const Center(child: CircularProgressIndicator());
+                }
 
-          List characters = [];
-          bool isLoadingMore = false;
+                List characters = [];
+                
+                // Logic updated for Pagination (replacing list, not appending)
+                if (state is CharacterLoading) {
+                  // If using the updated Cubit from previous step, use currentList
+                  // fallback to empty if your state hasn't been updated yet
+                  try {
+                    characters = state.currentList; 
+                  } catch (_) {
+                    // Fallback if you haven't updated State class variable name
+                     characters = (state as dynamic).oldCharacters ?? [];
+                  }
+                } else if (state is CharacterLoaded) {
+                  characters = state.characters;
+                } else if (state is CharacterError) {
+                  return Center(child: Text(state.message));
+                }
 
-          if (state is CharacterLoading) {
-            characters = state.oldCharacters;
-            isLoadingMore = true;
-          } else if (state is CharacterLoaded) {
-            characters = state.characters;
-          } else if (state is CharacterError) {
-            return Center(child: Text(state.message));
-          }
+                if (characters.isEmpty) {
+                  return const Center(child: Text('No characters found.'));
+                }
 
-          if (characters.isEmpty) {
-            return const Center(child: Text('No characters found.'));
-          }
-
-          return ListView.builder(
-            controller: _scrollController,
-            itemCount: characters.length + (isLoadingMore ? 1 : 0),
-            itemBuilder: (context, index) {
-              if (index < characters.length) {
-                final char = characters[index];
-                return CharacterListItem(character: char);
-              } else {
-                return const Padding(
-                  padding: EdgeInsets.all(16.0),
-                  child: Center(child: CircularProgressIndicator()),
+                // Opacity creates a subtle "loading" effect on the list while fetching next page
+                return Opacity(
+                  opacity: state is CharacterLoading ? 0.5 : 1.0,
+                  child: ListView.builder(
+                    controller: _scrollController,
+                    itemCount: characters.length,
+                    itemBuilder: (context, index) {
+                      final char = characters[index];
+                      return CharacterListItem(character: char);
+                    },
+                  ),
                 );
-              }
-            },
+              },
+            ),
+          ),
+          // ADDED: Pagination Controls
+          _buildPaginationBar(),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildPaginationBar() {
+    return Container(
+      color: Colors.grey[200], // distinct background
+      padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 20),
+      child: BlocBuilder<CharacterCubit, CharacterState>(
+        builder: (context, state) {
+          int currentPage = 1;
+          bool isLastPage = false;
+          bool isLoading = false;
+
+          if (state is CharacterLoaded) {
+            currentPage = state.currentPage;
+            isLastPage = state.hasReachedMax;
+          } else if (state is CharacterLoading) {
+             isLoading = true;
+             // We can't access page easily in loading state without casting 
+             // or storing it in the cubit differently, so we assume buttons disabled
+          }
+
+          return Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              ElevatedButton(
+                onPressed: (currentPage <= 1 || isLoading)
+                    ? null
+                    : () {
+                        context.read<CharacterCubit>().previousPage();
+                        // Optional: Scroll to top when changing page
+                        if (_scrollController.hasClients) {
+                           _scrollController.jumpTo(0);
+                        }
+                      },
+                child: const Text("Previous"),
+              ),
+              if (isLoading)
+                const SizedBox(
+                    width: 20, 
+                    height: 20, 
+                    child: CircularProgressIndicator(strokeWidth: 2)
+                )
+              else
+                Text(
+                  "Page $currentPage",
+                  style: const TextStyle(
+                      fontSize: 16, fontWeight: FontWeight.bold),
+                ),
+              ElevatedButton(
+                onPressed: (isLastPage || isLoading)
+                    ? null
+                    : () {
+                        context.read<CharacterCubit>().nextPage();
+                        if (_scrollController.hasClients) {
+                           _scrollController.jumpTo(0);
+                        }
+                      },
+                child: const Text("Next"),
+              ),
+            ],
           );
         },
       ),

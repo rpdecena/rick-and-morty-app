@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:rick_and_morty_app/core/navigation/router.dart';
 import 'package:rick_and_morty_app/core/navigation/routes.dart';
+import 'package:rick_and_morty_app/core/res/theme/theme.dart';
 
 void main() {
   runApp(const RickAndMortyApp());
@@ -12,8 +13,8 @@ class RickAndMortyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) => MaterialApp(
         debugShowCheckedModeBanner: false,
-        // theme: appTheme,
-        initialRoute: Routes.home,
+        theme: appTheme,
+        initialRoute: Routes.init,
         onGenerateRoute: AppRouter.generateRoute,
       );
 }
