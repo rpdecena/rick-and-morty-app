@@ -1,7 +1,21 @@
 import 'package:flutter/material.dart';
+import 'package:rick_and_morty_app/core/navigation/router.dart';
+import 'package:rick_and_morty_app/core/navigation/routes.dart';
 
 void main() {
-  runApp(const MyApp());
+  runApp(const RickAndMortyApp());
+}
+
+class RickAndMortyApp extends StatelessWidget {
+  const RickAndMortyApp({super.key});
+
+  @override
+  Widget build(BuildContext context) => MaterialApp(
+        debugShowCheckedModeBanner: false,
+        // theme: appTheme,
+        initialRoute: Routes.home,
+        onGenerateRoute: AppRouter.generateRoute,
+      );
 }
 
 class MyApp extends StatelessWidget {
