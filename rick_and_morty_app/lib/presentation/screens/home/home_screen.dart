@@ -54,22 +54,57 @@ class _HomeScreenState extends State<HomeScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        // Search Bar in Title
-        title: TextField(
-          controller: _searchController,
-          decoration: const InputDecoration(
-            hintText: 'Search by name...',
-            border: InputBorder.none,
-            hintStyle: TextStyle(color: Colors.white70),
+        // Modern Search Bar in Title
+        title: Container(
+          height: 40,
+          decoration: BoxDecoration(
+            color: Colors.white,
+            borderRadius: BorderRadius.circular(24),
+            boxShadow: [
+              BoxShadow(
+                color: Colors.black.withOpacity(0.08),
+                blurRadius: 6,
+                offset: const Offset(0, 2),
+              ),
+            ],
           ),
-          style: const TextStyle(color: Colors.white),
-          textInputAction: TextInputAction.search,
-          onSubmitted: (_) => _performSearch(),
+          child: ValueListenableBuilder<TextEditingValue>(
+            valueListenable: _searchController,
+            builder: (context, value, _) {
+              return TextField(
+                controller: _searchController,
+                decoration: InputDecoration(
+                  hintText: 'Search by name...',
+                  border: InputBorder.none,
+                  prefixIcon:
+                      Icon(Icons.search, color: Colors.grey.shade700, size: 20),
+                  suffixIcon: value.text.isNotEmpty
+                      ? IconButton(
+                          icon: Icon(Icons.clear, color: Colors.grey.shade700),
+                          onPressed: () {
+                            _searchController.clear();
+                            _performSearch();
+                            // Rebuild to hide clear icon
+                            setState(() {});
+                          },
+                        )
+                      : null,
+                  contentPadding: const EdgeInsets.symmetric(vertical: 12),
+                  hintStyle: TextStyle(color: Colors.grey.shade600),
+                ),
+                style: const TextStyle(color: Colors.black87),
+                textInputAction: TextInputAction.search,
+                onSubmitted: (_) => _performSearch(),
+              );
+            },
+          ),
         ),
         actions: [
           IconButton(
-            icon: const Icon(Icons.search),
-            onPressed: _performSearch,
+            icon: const Icon(Icons.filter_list),
+            onPressed: () {
+              // Optional: open a filters modal in the future
+            },
           )
         ],
         // Filters in Bottom Slot
@@ -119,11 +154,11 @@ class _HomeScreenState extends State<HomeScreen> {
           } else if (state is CharacterLoaded) {
             characters = state.characters;
           } else if (state is CharacterError) {
-             return Center(child: Text(state.message));
+            return Center(child: Text(state.message));
           }
 
           if (characters.isEmpty) {
-             return const Center(child: Text('No characters found.'));
+            return const Center(child: Text('No characters found.'));
           }
 
           return ListView.builder(
