@@ -25,10 +25,10 @@ class CharacterListItem extends StatelessWidget {
         margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
         padding: const EdgeInsets.all(12),
         decoration: BoxDecoration(
-          color: Colors.white.withOpacity(0.1),
+          color: Colors.lightGreenAccent.withOpacity(0.1),
           borderRadius: BorderRadius.circular(12),
           border: Border.all(
-            color: Colors.white.withOpacity(0.3),
+            color: Colors.black.withOpacity(0.3),
           ),
         ),
         child: Row(
@@ -64,7 +64,7 @@ class CharacterListItem extends StatelessWidget {
                         ? (character as full_char.Character).name
                         : (character as domain_char.Character).name,
                     style: const TextStyle(
-                      color: Colors.white,
+                      color: Colors.black,
                       fontWeight: FontWeight.bold,
                       fontSize: 16,
                     ),
@@ -119,18 +119,6 @@ class CharacterListItem extends StatelessWidget {
                         ),
                       ),
                     ],
-                  ),
-                  const SizedBox(height: 6),
-                  Text(
-                    (character is full_char.Character)
-                        ? '${(character as full_char.Character).species} • ${(character as full_char.Character).gender}'
-                        : '${(character as domain_char.Character).species} • ${(character as domain_char.Character).gender}',
-                    style: const TextStyle(
-                      color: Colors.white70,
-                      fontSize: 12,
-                    ),
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
                   ),
                 ],
               ),
