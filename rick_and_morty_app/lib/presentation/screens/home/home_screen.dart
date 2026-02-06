@@ -34,7 +34,6 @@ class _HomeScreenState extends State<HomeScreen> {
   @override
   void initState() {
     super.initState();
-    // REMOVED: Scroll listener for infinite scrolling
   }
 
   void _performSearch() {
@@ -79,7 +78,6 @@ class _HomeScreenState extends State<HomeScreen> {
                           onPressed: () {
                             _searchController.clear();
                             _performSearch();
-                            // Rebuild to hide clear icon
                             setState(() {});
                           },
                         )
@@ -125,27 +123,21 @@ class _HomeScreenState extends State<HomeScreen> {
           ),
         ),
       ),
-      // CHANGED: Use Column to stack List and Pagination Bar
       body: Column(
         children: [
           Expanded(
             child: BlocBuilder<CharacterCubit, CharacterState>(
               builder: (context, state) {
-                // Handle initial loading
                 if (state is CharacterLoading && state.isFirstFetch) {
                   return const Center(child: CircularProgressIndicator());
                 }
 
                 List characters = [];
 
-                // Logic updated for Pagination (replacing list, not appending)
                 if (state is CharacterLoading) {
-                  // If using the updated Cubit from previous step, use currentList
-                  // fallback to empty if your state hasn't been updated yet
                   try {
                     characters = state.currentList;
                   } catch (_) {
-                    // Fallback if you haven't updated State class variable name
                     characters = (state as dynamic).oldCharacters ?? [];
                   }
                 } else if (state is CharacterLoaded) {
@@ -158,7 +150,6 @@ class _HomeScreenState extends State<HomeScreen> {
                   return const Center(child: Text('No characters found.'));
                 }
 
-                // Opacity creates a subtle "loading" effect on the list while fetching next page
                 return Opacity(
                   opacity: state is CharacterLoading ? 0.5 : 1.0,
                   child: ListView.builder(
@@ -173,7 +164,6 @@ class _HomeScreenState extends State<HomeScreen> {
               },
             ),
           ),
-          // ADDED: Pagination Controls
           _buildPaginationBar(),
         ],
       ),
@@ -182,7 +172,7 @@ class _HomeScreenState extends State<HomeScreen> {
 
   Widget _buildPaginationBar() {
     return Container(
-      color: Colors.grey[200], // distinct background
+      color: Colors.grey[200],
       padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 20),
       child: BlocBuilder<CharacterCubit, CharacterState>(
         builder: (context, state) {
@@ -195,25 +185,27 @@ class _HomeScreenState extends State<HomeScreen> {
             isLastPage = state.hasReachedMax;
           } else if (state is CharacterLoading) {
             isLoading = true;
-            // We can't access page easily in loading state without casting
-            // or storing it in the cubit differently, so we assume buttons disabled
           }
 
           return Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              ElevatedButton(
-                onPressed: (currentPage <= 1 || isLoading)
-                    ? null
-                    : () {
-                        context.read<CharacterCubit>().previousPage();
-                        // Optional: Scroll to top when changing page
-                        if (_scrollController.hasClients) {
-                          _scrollController.jumpTo(0);
-                        }
-                      },
-                child: const Text("Previous"),
+              // PREVIOUS BUTTON
+              SizedBox(
+                width: 120, // Fixed width ensures symmetry
+                child: ElevatedButton(
+                  onPressed: (currentPage <= 1 || isLoading)
+                      ? null
+                      : () {
+                          context.read<CharacterCubit>().previousPage();
+                          if (_scrollController.hasClients) {
+                            _scrollController.jumpTo(0);
+                          }
+                        },
+                  child: const Text("Previous"),
+                ),
               ),
+              
               if (isLoading)
                 const SizedBox(
                     width: 20,
@@ -225,16 +217,21 @@ class _HomeScreenState extends State<HomeScreen> {
                   style: const TextStyle(
                       fontSize: 16, fontWeight: FontWeight.bold),
                 ),
-              ElevatedButton(
-                onPressed: (isLastPage || isLoading)
-                    ? null
-                    : () {
-                        context.read<CharacterCubit>().nextPage();
-                        if (_scrollController.hasClients) {
-                          _scrollController.jumpTo(0);
-                        }
-                      },
-                child: const Text("Next"),
+
+              // NEXT BUTTON
+              SizedBox(
+                width: 120, // Same width as Previous
+                child: ElevatedButton(
+                  onPressed: (isLastPage || isLoading)
+                      ? null
+                      : () {
+                          context.read<CharacterCubit>().nextPage();
+                          if (_scrollController.hasClients) {
+                            _scrollController.jumpTo(0);
+                          }
+                        },
+                  child: const Text("Next"),
+                ),
               ),
             ],
           );
