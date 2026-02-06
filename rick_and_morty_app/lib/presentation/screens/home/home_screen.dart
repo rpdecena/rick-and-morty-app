@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:rick_and_morty_app/presentation/screens/home/cubits/character_cubit.dart';
+import 'package:rick_and_morty_app/presentation/widgets/character_list_item.dart';
 
 class HomeScreen extends StatelessWidget {
   const HomeScreen({super.key});
@@ -18,13 +19,7 @@ class HomeScreen extends StatelessWidget {
               itemCount: state.characters.length,
               itemBuilder: (context, index) {
                 final char = state.characters[index];
-                return ListTile(
-                  leading:
-                      CircleAvatar(backgroundImage: NetworkImage(char.image)),
-                  title: Text(char.name),
-                  subtitle:
-                      Text('${char.status} - ${char.species} (${char.gender})'),
-                );
+                return CharacterListItem(character: char);
               },
             );
           } else if (state is CharacterError) {
