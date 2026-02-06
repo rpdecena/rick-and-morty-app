@@ -1,4 +1,3 @@
-// presentation/screens/home/cubits/character_cubit.dart
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:rick_and_morty_app/data/repositories/character_repositories_imple.dart';
 import 'package:rick_and_morty_app/domain/entities/character.dart';
@@ -9,17 +8,18 @@ abstract class CharacterState {}
 class CharacterInitial extends CharacterState {}
 
 class CharacterLoading extends CharacterState {
-  final List<Character> oldCharacters; // Keep old data while loading next page
+  final List<Character> currentList; 
   final bool isFirstFetch;
 
-  CharacterLoading(this.oldCharacters, {this.isFirstFetch = false});
+  CharacterLoading(this.currentList, {this.isFirstFetch = false});
 }
 
 class CharacterLoaded extends CharacterState {
   final List<Character> characters;
-  final bool hasReachedMax; // To stop pagination
+  final int currentPage; // Added to track UI display
+  final bool hasReachedMax;
 
-  CharacterLoaded(this.characters, {this.hasReachedMax = false});
+  CharacterLoaded(this.characters, {required this.currentPage, this.hasReachedMax = false});
 }
 
 class CharacterError extends CharacterState {
@@ -39,7 +39,7 @@ class CharacterCubit extends Cubit<CharacterState> {
   String currentSpecies = '';
   bool isFetching = false; 
 
-  // Triggered by Search Button or Filter Change
+  // --- Search / Filter Reset ---
   void loadCharacters({
     String? name,
     String? status,
@@ -47,7 +47,6 @@ class CharacterCubit extends Cubit<CharacterState> {
   }) {
     if (isFetching) return;
     
-    // Reset for new search
     page = 1;
     currentName = name ?? currentName;
     currentStatus = status ?? currentStatus;
@@ -56,29 +55,33 @@ class CharacterCubit extends Cubit<CharacterState> {
     _fetchCharacters(isFirstFetch: true);
   }
 
-  // Triggered by ScrollController
-  void loadMore() {
-    if (state is CharacterLoaded && (state as CharacterLoaded).hasReachedMax) return;
+  // --- Pagination Controls ---
+  void nextPage() {
     if (isFetching) return;
+    if (state is CharacterLoaded && (state as CharacterLoaded).hasReachedMax) return;
+    
+    page++;
+    _fetchCharacters(isFirstFetch: false);
+  }
 
+  void previousPage() {
+    if (isFetching || page <= 1) return;
+    
+    page--;
     _fetchCharacters(isFirstFetch: false);
   }
 
   void _fetchCharacters({required bool isFirstFetch}) async {
     try {
       isFetching = true;
-      List<Character> oldCharacters = [];
+      List<Character> currentList = [];
       
+      // Keep displaying current list while loading next page to avoid white flash
       if (state is CharacterLoaded) {
-        oldCharacters = (state as CharacterLoaded).characters;
+        currentList = (state as CharacterLoaded).characters;
       }
 
-      if (isFirstFetch) {
-        emit(CharacterLoading([], isFirstFetch: true));
-      } else {
-        // Show loading indicator at bottom while keeping list
-        emit(CharacterLoading(oldCharacters, isFirstFetch: false));
-      }
+      emit(CharacterLoading(currentList, isFirstFetch: isFirstFetch));
 
       final newCharacters = await repository.getCharacters(
         page: page,
@@ -88,15 +91,13 @@ class CharacterCubit extends Cubit<CharacterState> {
       );
 
       isFetching = false;
-      page++;
 
-      final totalCharacters = isFirstFetch 
-          ? newCharacters 
-          : [...oldCharacters, ...newCharacters];
-
+      // Logic Change: We REPLACE the list, not append.
+      // We assume API returns < 20 items if it's the last page.
       emit(CharacterLoaded(
-        totalCharacters, 
-        hasReachedMax: newCharacters.isEmpty // If return empty, we are done
+        newCharacters, 
+        currentPage: page,
+        hasReachedMax: newCharacters.length < 20 
       ));
     } catch (e) {
       isFetching = false;
