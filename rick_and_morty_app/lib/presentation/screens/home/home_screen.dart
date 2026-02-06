@@ -119,11 +119,11 @@ class _HomeScreenState extends State<HomeScreen> {
           } else if (state is CharacterLoaded) {
             characters = state.characters;
           } else if (state is CharacterError) {
-             return Center(child: Text(state.message));
+            return Center(child: Text(state.message));
           }
 
           if (characters.isEmpty) {
-             return const Center(child: Text('No characters found.'));
+            return const Center(child: Text('No characters found.'));
           }
 
           return ListView.builder(
