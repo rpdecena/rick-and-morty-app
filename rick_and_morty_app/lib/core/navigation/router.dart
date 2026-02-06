@@ -22,7 +22,7 @@ class AppRouter {
         BlocProvider(
           create: (_) => CharacterCubit(
             CharacterRepositoryImpl(client: http.Client()),
-          )..getCharacters(),
+          )..loadCharacters(),
         ),
       ],
       child: const HomeScreen(),
