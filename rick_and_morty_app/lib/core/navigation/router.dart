@@ -10,10 +10,13 @@ import 'package:rick_and_morty_app/data/repositories/character_repositories_impl
 import 'package:rick_and_morty_app/presentation/screens/home/cubits/character_cubit.dart';
 import 'package:rick_and_morty_app/presentation/screens/home/home_screen.dart';
 import 'package:http/http.dart' as http;
+import 'package:rick_and_morty_app/presentation/screens/initial/initial_screen.dart';
 
 class AppRouter {
   static Route<dynamic> generateRoute(RouteSettings settings) {
     switch (settings.name) {
+      case Routes.init:
+        return AppTransition.none(child: const InitialScreen());
       case Routes.home:
         return AppTransition.slide(child: buildHomeScreen());
       case Routes.characterDetail:
