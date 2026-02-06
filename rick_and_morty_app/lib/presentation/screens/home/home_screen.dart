@@ -11,15 +11,21 @@ class HomeScreen extends StatefulWidget {
 }
 
 class _HomeScreenState extends State<HomeScreen> {
-  // Note: ScrollController is no longer needed for pagination logic, 
+  // Note: ScrollController is no longer needed for pagination logic,
   // but kept if you want to scroll to top on page change.
   final ScrollController _scrollController = ScrollController();
   final TextEditingController _searchController = TextEditingController();
 
   final List<String> statusOptions = ['All', 'Alive', 'Dead', 'unknown'];
   final List<String> speciesOptions = [
-    'All', 'Human', 'Alien', 'Humanoid', 'Poopybutthole',
-    'Mythological Creature', 'Robot', 'Cronenberg'
+    'All',
+    'Human',
+    'Alien',
+    'Humanoid',
+    'Poopybutthole',
+    'Mythological Creature',
+    'Robot',
+    'Cronenberg'
   ];
 
   String selectedStatus = 'All';
@@ -88,14 +94,6 @@ class _HomeScreenState extends State<HomeScreen> {
             },
           ),
         ),
-        actions: [
-          IconButton(
-            icon: const Icon(Icons.filter_list),
-            onPressed: () {
-              // Optional: open a filters modal in the future
-            },
-          )
-        ],
         bottom: PreferredSize(
           preferredSize: const Size.fromHeight(60),
           child: SingleChildScrollView(
@@ -139,16 +137,16 @@ class _HomeScreenState extends State<HomeScreen> {
                 }
 
                 List characters = [];
-                
+
                 // Logic updated for Pagination (replacing list, not appending)
                 if (state is CharacterLoading) {
                   // If using the updated Cubit from previous step, use currentList
                   // fallback to empty if your state hasn't been updated yet
                   try {
-                    characters = state.currentList; 
+                    characters = state.currentList;
                   } catch (_) {
                     // Fallback if you haven't updated State class variable name
-                     characters = (state as dynamic).oldCharacters ?? [];
+                    characters = (state as dynamic).oldCharacters ?? [];
                   }
                 } else if (state is CharacterLoaded) {
                   characters = state.characters;
@@ -196,9 +194,9 @@ class _HomeScreenState extends State<HomeScreen> {
             currentPage = state.currentPage;
             isLastPage = state.hasReachedMax;
           } else if (state is CharacterLoading) {
-             isLoading = true;
-             // We can't access page easily in loading state without casting 
-             // or storing it in the cubit differently, so we assume buttons disabled
+            isLoading = true;
+            // We can't access page easily in loading state without casting
+            // or storing it in the cubit differently, so we assume buttons disabled
           }
 
           return Row(
@@ -211,17 +209,16 @@ class _HomeScreenState extends State<HomeScreen> {
                         context.read<CharacterCubit>().previousPage();
                         // Optional: Scroll to top when changing page
                         if (_scrollController.hasClients) {
-                           _scrollController.jumpTo(0);
+                          _scrollController.jumpTo(0);
                         }
                       },
                 child: const Text("Previous"),
               ),
               if (isLoading)
                 const SizedBox(
-                    width: 20, 
-                    height: 20, 
-                    child: CircularProgressIndicator(strokeWidth: 2)
-                )
+                    width: 20,
+                    height: 20,
+                    child: CircularProgressIndicator(strokeWidth: 2))
               else
                 Text(
                   "Page $currentPage",
@@ -234,7 +231,7 @@ class _HomeScreenState extends State<HomeScreen> {
                     : () {
                         context.read<CharacterCubit>().nextPage();
                         if (_scrollController.hasClients) {
-                           _scrollController.jumpTo(0);
+                          _scrollController.jumpTo(0);
                         }
                       },
                 child: const Text("Next"),
