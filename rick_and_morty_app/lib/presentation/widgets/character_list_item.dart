@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:rick_and_morty_app/domain/entities/character.dart'
     as domain_char;
-import 'package:rick_and_morty_app/models/character.dart' as full_char;
+import 'package:rick_and_morty_app/domain/models/character.dart' as full_char;
 import 'package:rick_and_morty_app/core/navigation/routes.dart';
 
 class CharacterListItem extends StatelessWidget {

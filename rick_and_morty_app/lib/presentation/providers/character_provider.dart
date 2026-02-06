@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:rick_and_morty_app/models/character.dart';
+import 'package:rick_and_morty_app/domain/models/character.dart';
 import 'package:rick_and_morty_app/domain/usecases/character_usecases.dart';
 
 class CharacterProvider extends ChangeNotifier {

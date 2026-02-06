@@ -1,4 +1,4 @@
-import 'package:rick_and_morty_app/models/character.dart';
+import 'package:rick_and_morty_app/domain/models/character.dart';
 import 'package:rick_and_morty_app/domain/repositories/character_repository.dart';
 import 'package:rick_and_morty_app/data/datasources/character_remote_datasource.dart';
 
